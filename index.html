@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DONAT KG — Пополнение игр</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0b0b10;
+  color:#fff;
+}
+header{
+  padding:18px;
+  background:#14141c;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #292936;
+}
+.logo{
+  font-size:23px;
+  font-weight:bold;
+}
+.logo span{color:#8b5cf6}
+.orders{
+  background:#242431;
+  padding:9px 13px;
+  border-radius:10px;
+}
+.hero{
+  padding:28px 18px;
+  text-align:center;
+  background:linear-gradient(135deg,#171326,#0b0b10);
+}
+.hero h1{
+  font-size:30px;
+  margin:5px 0 10px;
+}
+.hero p{
+  color:#aaa;
+  margin:0;
+}
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:20px;
+}
+h2{margin-top:5px}
+.games{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:12px;
+}
+.game{
+  background:#15151e;
+  border:1px solid #292936;
+  border-radius:15px;
+  padding:18px 10px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+}
+.game:hover{
+  transform:translateY(-3px);
+  border-color:#8b5cf6;
+}
+.game-icon{font-size:38px}
+.game-name{
+  margin-top:9px;
+  font-weight:bold;
+}
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  z-index:10;
+  padding:15px;
+  overflow:auto;
+}
+.box{
+  max-width:500px;
+  margin:30px auto;
+  background:#15151e;
+  border:1px solid #333344;
+  border-radius:18px;
+  padding:20px;
+}
+.close{
+  float:right;
+  font-size:25px;
+  cursor:pointer;
+}
+.package{
+  padding:13px;
+  margin:8px 0;
+  background:#20202b;
+  border:1px solid #30303d;
+  border-radius:11px;
+  cursor:pointer;
+}
+.package:hover,.package.selected{
+  border-color:#8b5cf6;
+  background:#27233a;
+}
+.price{
+  float:right;
+  font-weight:bold;
+}
+.bonus{
+  color:#ffd43b;
+  font-size:13px;
+  margin-top:5px;
+}
+input{
+  width:100%;
+  padding:13px;
+  margin:10px 0;
+  border:1px solid #363644;
+  border-radius:10px;
+  background:#0d0d13;
+  color:#fff;
+  font-size:16px;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:11px;
+  background:#8b5cf6;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:hover{background:#7445d8}
+.info{
+  color:#aaa;
+  font-size:13px;
+  line-height:1.5;
+}
+.order{
+  background:#171720;
+  border:1px solid #292936;
+  border-radius:12px;
+  padding:13px;
+  margin:10px 0;
+}
+.empty{
+  color:#888;
+  text-align:center;
+  padding:20px;
+}
+footer{
+  text-align:center;
+  color:#777;
+  padding:30px 10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">💎 DONAT <span>KG</span></div>
+  <div class="orders" onclick="showOrders()">📦 Заказы</div>
+</header>
+
+<section class="hero">
+  <h1>Пополнение игр</h1>
+  <p>Быстро • Удобно • В сомах 🇰🇬</p>
+</section>
+
+<div class="container">
+  <h2>🎮 Игры</h2>
+  <div class="games" id="games"></div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <div class="close" onclick="closeModal()">×</div>
+
+    <h2 id="gameTitle"></h2>
+    <p class="info" id="gameInfo"></p>
+
+    <h3>Выберите пакет</h3>
+    <div id="packages"></div>
+
+    <h3>🆔 ID игрока</h3>
+    <input id="playerId" placeholder="Введите ID игрока">
+
+    <div id="selectedInfo" class="info"></div>
+
+    <br>
+    <button onclick="createOrder()">🛒 Оформить заказ</button>
+  </div>
+</div>
+
+<div class="modal" id="ordersModal">
+  <div class="box">
+    <div class="close" onclick="closeOrders()">×</div>
+    <h2>📦 Мои заказы</h2>
+    <div id="ordersList"></div>
+  </div>
+</div>
+
+<footer>
+  💎 DONAT KG<br>
+  Поддержка: Telegram
+</footer>
+
+<script>
+
+const games = [
+
+{
+name:"Free Fire",
+icon:"🔥",
+currency:"💎 Алмазы",
+idName:"ID игрока",
+packages:[
+["100",69],
+["310",209],
+["520",339],
+["1060",699],
+["2180",1399],
+["5600",3299],
+["11500",6499]
+]
+},
+
+{
+name:"PUBG Mobile",
+icon:"🔫",
+currency:"🪙 UC",
+idName:"Player ID",
+packages:[
+["60",85],
+["325",399],
+["660",799],
+["1800",2099],
+["3850",3999],
+["8100",7999]
+]
+},
+
+{
+name:"Telegram Stars",
+icon:"⭐",
+currency:"⭐ Stars",
+idName:"Telegram username / ID",
+packages:[
+["50",85],
+["100",165],
+["250",399],
+["500",779],
+["1000",1549]
+]
+},
+
+{
+name:"Roblox",
+icon:"🧱",
+currency:"🟨 Robux",
+idName:"Username",
+packages:[
+["400",399],
+["800",799],
+["1200",1099],
+["1700",1499],
+["4500",3999]
+]
+},
+
+{
+name:"Blood Strike",
+icon:"💥",
+currency:"🪙 Gold",
+idName:"Player ID",
+packages:[
+["100",79],
+["310",229],
+["520",379],
+["1060",749],
+["2180",1499]
+]
+},
+
+{
+name:"Mobile Legends",
+icon:"⚔️",
+currency:"💎 Diamonds",
+idName:"User ID + Zone ID",
+packages:[
+["86",139],
+["172",259],
+["257",379],
+["343",499],
+["429",619],
+["514",739]
+]
+},
+
+{
+name:"Arena Breakout",
+icon:"🎯",
+currency:"💰 Bonds",
+idName:"Player ID",
+packages:[
+["60",89],
+["310",399],
+["650",799],
+["1280",1599],
+["2580",2999]
+]
+},
+
+{
+name:"Arena Breakout: Infinite",
+icon:"🪖",
+currency:"💰 Bonds",
+idName:"Player ID",
+packages:[
+["60",89],
+["310",399],
+["650",799],
+["1280",1599],
+["2580",2999]
+]
+},
+
+{
+name:"Honor of Kings",
+icon:"👑",
+currency:"💎 Tokens",
+idName:"Player ID",
+packages:[
+["80",89],
+["240",269],
+["400",449],
+["800",849],
+["1200",1299]
+]
+},
+
+{
+name:"Marvel Rivals",
+icon:"🦸",
+currency:"🪙 Lattice",
+idName:"Player ID",
+packages:[
+["100",99],
+["300",279],
+["500",449],
+["1000",899],
+["2180",1899]
+]
+},
+
+{
+name:"Undawn",
+icon:"🌅",
+currency:"💎 RC",
+idName:"Player ID",
+packages:[
+["70",75,10],
+["90",95,12],
+["125",129,15],
+["177",179,20],
+["180",189,20],
+["248",249,25],
+["330",329,35],
+["360",359,40],
+["540",529,55],
+["630",619,65],
+["690",689,70],
+["720",719,75],
+["900",899,100],
+["990",989,110],
+["1260",1249,140],
+["1370",1359,150],
+["1770",1749,200],
+["1800",1779,200]
+]
+}
+
+];
+
+let currentGame=null;
+let currentPackage=null;
+
+const gamesBox=document.getElementById("games");
+
+games.forEach((game,index)=>{
+  gamesBox.innerHTML+=`
+    <div class="game" onclick="openGame(${index})">
+      <div class="game-icon">${game.icon}</div>
+      <div class="game-name">${game.name}</div>
+    </div>
+  `;
+});
+
+function openGame(index){
+
+  currentGame=games[index];
+  currentPackage=null;
+
+  document.getElementById("gameTitle").innerText=
+    currentGame.icon+" "+currentGame.name;
+
+  document.getElementById("gameInfo").innerText=
+    currentGame.currency+" • "+currentGame.idName;
+
+  const box=document.getElementById("packages");
+  box.innerHTML="";
+
+  currentGame.packages.forEach((p,i)=>{
+
+    const amount=p[0];
+    const price=p[1];
+    const bonus=p[2] || 0;
+
+    box.innerHTML+=`
+      <div class="package" onclick="selectPackage(${i})">
+        <b>${amount} ${currentGame.currency}</b>
+        <span class="price">${price} сом</span>
+        ${bonus>0
+          ? `<div class="bonus">🎁 +${bonus} RC → всего ${Number(amount)+bonus} RC</div>`
+          : ""}
+      </div>
+    `;
+  });
+
+  document.getElementById("playerId").value="";
+  document.getElementById("selectedInfo").innerText=
+    "Выберите пакет выше.";
+
+  document.getElementById("modal").style.display="block";
+}
+
+function selectPackage(index){
+
+  currentPackage=currentGame.packages[index];
+
+  const amount=currentPackage[0];
+  const price=currentPackage[1];
+  const bonus=currentPackage[2] || 0;
+
+  document.querySelectorAll(".package")
+    .forEach(x=>x.classList.remove("selected"));
+
+  document.querySelectorAll(".package")[index]
+    .classList.add("selected");
+
+  document.getElementById("selectedInfo").innerHTML=
+    `Выбрано: <b>${amount} ${currentGame.currency}</b>
+    — <b>${price} сом</b>
+    ${bonus>0 ? `<br>🎁 Бонус: +${bonus} RC` : ""}`;
+}
+
+function createOrder(){
+
+  if(!currentPackage){
+    alert("Сначала выберите пакет.");
+    return;
+  }
+
+  const playerId=document.getElementById("playerId").value.trim();
+
+  if(!playerId){
+    alert("Введите ID игрока.");
+    return;
+  }
+
+  const order={
+    number:"DK-"+Date.now(),
+    game:currentGame.name,
+    package:currentPackage[0]+" "+currentGame.currency,
+    price:currentPackage[1],
+    bonus:currentPackage[2] || 0,
+    playerId:playerId,
+    status:"Новый",
+    date:new Date().toLocaleString("ru-RU")
+  };
+
+  const orders=JSON.parse(localStorage.getItem("donatOrders") || "[]");
+
+  orders.unshift(order);
+
+  localStorage.setItem(
+    "donatOrders",
+    JSON.stringify(orders)
+  );
+
+  closeModal();
+
+  alert(
+    "Заказ создан!\n\n"+
+    "Номер: "+order.number+
+    "\nИгра: "+order.game+
+    "\nСумма: "+order.price+" сом"
+  );
+}
+
+function showOrders(){
+
+  const orders=JSON.parse(
+    localStorage.getItem("donatOrders") || "[]"
+  );
+
+  const list=document.getElementById("ordersList");
+
+  if(!orders.length){
+    list.innerHTML=
+      `<div class="empty">Заказов пока нет.</div>`;
+  }else{
+
+    list.innerHTML=orders.map(o=>`
+      <div class="order">
+        <b>${o.game}</b><br>
+        📦 ${o.package}<br>
+        💰 ${o.price} сом<br>
+        🆔 ${o.playerId}<br>
+        ${o.bonus
+          ? `🎁 Бонус: +${o.bonus} RC<br>`
+          : ""}
+        📅 ${o.date}<br>
+        📌 Статус: ${o.status}<br>
+        <small>${o.number}</small>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("ordersModal").style.display="block";
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+function closeOrders(){
+  document.getElementById("ordersModal").style.display="none";
+}
+
+</script>
+
+</body>
+</html>
