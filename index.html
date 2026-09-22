@@ -462,7 +462,7 @@ function selectPackage(index){
     ${bonus>0 ? `<br>🎁 Бонус: +${bonus} RC` : ""}`;
 }
 
-function createOrder(){
+async function createOrder(){
 
   if(!currentPackage){
     alert("Сначала выберите пакет.");
@@ -487,26 +487,55 @@ function createOrder(){
     date:new Date().toLocaleString("ru-RU")
   };
 
-  const orders=JSON.parse(localStorage.getItem("donatOrders") || "[]");
+  try{
 
-  orders.unshift(order);
+    const response=await fetch(
+      "https://donat-kg-server-1.onrender.com/order",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(order)
+      }
+    );
 
-  localStorage.setItem(
-    "donatOrders",
-    JSON.stringify(orders)
-  );
+    const result=await response.json();
 
-  closeModal();
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || "Ошибка сервера");
+    }
 
-  alert(
-    "Заказ создан!\n\n"+
-    "Номер: "+order.number+
-    "\nИгра: "+order.game+
-    "\nСумма: "+order.price+" сом"
-  );
-}
+    const orders=
+      JSON.parse(localStorage.getItem("donatOrders") || "[]");
 
-function showOrders(){
+    orders.unshift(order);
+
+    localStorage.setItem(
+      "donatOrders",
+      JSON.stringify(orders)
+    );
+
+    closeModal();
+
+    alert(
+      "✅ Заказ отправлен!\n\n"+
+      "Номер: "+order.number+
+      "\nИгра: "+order.game+
+      "\nСумма: "+order.price+" сом\n\n"+
+      "Заказ передан администратору."
+    );
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "❌ Не удалось отправить заказ.\n\n"+
+      "Попробуйте ещё раз."
+    );
+  }
+}function showOrders(){
 
   const orders=JSON.parse(
     localStorage.getItem("donatOrders") || "[]"
