@@ -196,7 +196,7 @@ footer{
     <div id="selectedInfo" class="info"></div>
 
     <br>
-    <button onclick="createOrder()">🛒 Оформить заказ</button>
+    <button id="orderButton" onclick="createOrder()">🛒 Оформить заказ</button>
   </div>
 </div>
 
@@ -461,8 +461,9 @@ function selectPackage(index){
     — <b>${price} сом</b>
     ${bonus>0 ? `<br>🎁 Бонус: +${bonus} RC` : ""}`;
 }
-
 async function createOrder(){
+
+  const button=document.getElementById("orderButton");
 
   if(!currentPackage){
     alert("Сначала выберите пакет.");
@@ -475,6 +476,14 @@ async function createOrder(){
     alert("Введите ID игрока.");
     return;
   }
+
+  // Защита от повторной отправки
+  if(button.disabled){
+    return;
+  }
+
+  button.disabled=true;
+  button.innerText="⏳ Отправка...";
 
   const order={
     number:"DK-"+Date.now(),
@@ -534,7 +543,15 @@ async function createOrder(){
       "❌ Не удалось отправить заказ.\n\n"+
       "Попробуйте ещё раз."
     );
+
+  }finally{
+
+    button.disabled=false;
+    button.innerText="🛒 Оформить заказ";
+
   }
+}
+
 }function showOrders(){
 
   const orders=JSON.parse(
